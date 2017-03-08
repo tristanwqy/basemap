@@ -47,6 +47,11 @@ def get_building_shadow(length, width, rotation_angle, center=(0, 0), h=80):
     demi_shadow = shadow_long.symmetric_difference(shadow_height)
     return demi_shadow
 
+def get_building_on_a_line(line, length, width, rotation_angle):
+    if line.length < length:
+        return None
+    line
+
 polygon1 = get_building(100, 50, 0, (0, 0))
 polygon2 = get_building(100, 50, 30, (0, 0))
 polygon3 = get_building(100, 50, 60, (20, 50))
