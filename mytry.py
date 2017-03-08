@@ -19,8 +19,8 @@ def get_eclipse(a, b, center=(0, 0), resolution=16):
     return Polygon(point_list)
 
 
-gpd.GeoSeries([get_eclipse(5, 3, (3, 15))]).plot()
-plt.show()
+# gpd.GeoSeries([get_eclipse(5, 3, (3, 15))]).plot()
+# plt.show()
 
 
 def get_building(length, width, rotate_angle, center=(0, 0)):
@@ -39,3 +39,18 @@ def get_building(length, width, rotate_angle, center=(0, 0)):
                            (r * math.cos(pointC_angle) + x, r * math.sin(pointC_angle) + y),
                            (r * math.cos(pointD_angle) + x, r * math.sin(pointD_angle) + y)])
     return new_polygon
+
+
+def get_building_shadow(length, width, rotation_angle, center=(0, 0), h=80):
+    shadow_long = get_building(length=length + 13, width=width, rotate_angle=rotation_angle, center=center)
+    shadow_height = get_building(length=length, width=h, rotate_angle=rotation_angle, center=center)
+    demi_shadow = shadow_long.symmetric_difference(shadow_height)
+    return demi_shadow
+
+polygon1 = get_building(100, 50, 0, (0, 0))
+polygon2 = get_building(100, 50, 30, (0, 0))
+polygon3 = get_building(100, 50, 60, (20, 50))
+polygon4 = get_building_shadow(100, 50, 30, (0, 0))
+gdf = gpd.GeoSeries([polygon2, polygon4])
+gdf.plot()
+plt.show()
