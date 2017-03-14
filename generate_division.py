@@ -93,8 +93,6 @@ def generate_plans_by_division(divisions, cascaded_roads, plan_number=10,
         # list_to_display.extend(building_lines)
         gpd.GeoSeries(list_to_display).plot()
         plt.savefig("{}.png".format(i))
-        # list_to_display.append(overall_shadows)
-        # gpd.GeoSeries(list_to_display).plot()
         print(len(overall_buildings))
         plan_list.append(overall_buildings)
     return plan_list
