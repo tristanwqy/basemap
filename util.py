@@ -35,13 +35,13 @@ def get_building(length, width, rotate_angle, center=(0, 0)):
 
 def get_building_shadow(length, width, rotation_angle, center=(0, 0), h=80):
     shadow_list = []
-    shadow_long = get_building(length=length + 26, width=width, rotate_angle=rotation_angle, center=center)
+    shadow_long = get_building(length=length + 2 * 13, width=width, rotate_angle=rotation_angle, center=center)
     shadow_height = get_building(length=length, width=2 * h, rotate_angle=rotation_angle, center=center)
     shadow_list.append(shadow_long)
     shadow_list.append(shadow_height)
     corners = get_corners(length, width, rotation_angle, center)
     for corner in corners:
-        shadow_list.append(Point(corner).buffer(6, 4))
+        shadow_list.append(Point(corner).buffer(6))
     shadow = cascaded_union(shadow_list)
     return shadow
 
@@ -128,8 +128,9 @@ def get_buffered_sections(collection, buffer):
     return new_collection_buffered
 
 
-def generate_plans(collection_buffered, overall_shadows, overall_buildings, fix_angle=None):
-    # random.shuffle(collection_buffered)
+def generate_plan(collection_buffered, overall_shadows, overall_buildings,
+                  building_length=32, building_width=16, shadow_h=80, fix_angle=None):
+    random.shuffle(collection_buffered)
     for our_base in collection_buffered:
         building_line = our_base
         if building_line.is_empty:
@@ -146,34 +147,28 @@ def generate_plans(collection_buffered, overall_shadows, overall_buildings, fix_
             endx = end_point[0]
             endy = end_point[1]
             line = LineString([start_point, end_point])
-            if line.length < 1:
-                continue
+            if not fix_angle:
+                angle = math.degrees(math.atan2(endy - starty, endx - startx))
             else:
-                if not fix_angle:
-                    angle = math.degrees(math.atan2(endy - starty, endx - startx))
-                else:
-                    angle = fix_angle
-                if line.length < 10:
-                    n = 1
-                else:
-                    n = 10
-                for j in range(n):
-                    k = random.randint(0, 9)
-                    center = (
-                        startx + ((j + k) % 10) * (endx - startx) / 10, starty + ((j + k) % 10) * (endy - starty) / 10)
-                    building = get_building(32, 16, angle, center=center)
-                    shadow = get_building_shadow(32, 16, angle, center=center)
-                    if not overall_buildings:
-                        if overall_shadows.intersects(building):
-                            continue
-                        else:
-                            overall_buildings = building
-                            overall_shadows = overall_shadows.union(shadow)
-                    elif overall_shadows.intersects(building) or overall_buildings.intersects(shadow):
+                angle = fix_angle
+            n = int(line.length / 3)
+            for j in range(n):
+                k = random.randint(0, n - 1)
+                center = (
+                    startx + ((j + k) % n) * (endx - startx) / n, starty + ((j + k) % n) * (endy - starty) / n)
+                building = get_building(building_length, building_width, angle, center=center)
+                shadow = get_building_shadow(building_length, building_width, angle, center=center, h=shadow_h)
+                if not overall_buildings:
+                    if overall_shadows.intersects(building):
                         continue
                     else:
+                        overall_buildings = building
                         overall_shadows = overall_shadows.union(shadow)
-                        overall_buildings = overall_buildings.union(building)
+                elif overall_shadows.intersects(building) or overall_buildings.intersects(shadow):
+                    continue
+                else:
+                    overall_shadows = overall_shadows.union(shadow)
+                    overall_buildings = overall_buildings.union(building)
     return overall_buildings, overall_shadows
 
 
@@ -251,6 +246,8 @@ def mod(i, module):
 
 
 def smooth_polygon(polygon, min_length=20, multiple_start=True):
+    if not isinstance(polygon, Polygon):
+        return polygon
     coords = polygon.boundary.coords
     if multiple_start:
         coords = coords[:-1]
