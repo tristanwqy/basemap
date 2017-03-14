@@ -7,7 +7,7 @@ from shapely.geometry import *
 from shapely.ops import cascaded_union
 
 from mock_bases import get_mock_base
-from util import get_entrances, generate_collection, get_roads_v2, smooth_polygon, get_buffered_sections, generate_plan
+from utils import get_entrances, generate_collection, get_roads_v2, smooth_polygon, get_buffered_sections, generate_plan
 
 
 def generate_division(base, min_r=60, max_r=80):
